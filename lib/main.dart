@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
-import 'package:kart_v0/DashboardScreen.dart';
 import 'package:kart_v0/Location.dart';
 
 void main() {
