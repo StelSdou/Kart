@@ -122,7 +122,7 @@ class _SpeedometerState extends State<Speedometer> {
               annotations: <GaugeAnnotation>[
                 GaugeAnnotation(
                   angle: 90,
-                  positionFactor: 0.20,
+                  positionFactor: 0.10,
                   widget: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,

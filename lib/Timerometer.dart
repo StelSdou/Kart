@@ -194,7 +194,7 @@ class _TimerometerState extends State<Timerometer> {
                 // Εμφάνιση χρόνου στο κέντρο σε μορφή m:ss:ms
                 GaugeAnnotation(
                   angle: 90,
-                  positionFactor: 0.25,
+                  positionFactor: 0.1,
                   widget: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,

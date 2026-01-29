@@ -21,6 +21,9 @@ Future<void> main() async {
   // Κρατάει την οθόνη ανοικτή
   await WakelockPlus.enable();
 
+  // Hide status and navigation bars (immersive full-screen)
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   runApp(const MyApp());
 }
 
@@ -33,9 +36,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kart V0',
+      title: 'SpeedTrace',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 10, 10, 15),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
