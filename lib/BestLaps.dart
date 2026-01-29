@@ -16,10 +16,10 @@ class Bestlaps extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
-          '$lap. \n ${lap-1}. \n ${lap-2}. ',
+          ' $lap. \n ${lap-1}. \n ${lap-2}. ',
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 41,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.black,
             shadows: [
@@ -59,7 +59,7 @@ class Bestlaps extends StatelessWidget {
           '--:--:--- \n $prev \n $first',
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 41,
+            fontSize: 20,
             fontWeight: FontWeight.w400,
             color: Colors.white,
           ),

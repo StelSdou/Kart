@@ -1,18 +1,61 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:kart_v0/Location.dart';
+import 'package:geolocator/geolocator.dart';
 
-class Speedometer extends StatelessWidget {
+class Speedometer extends StatefulWidget {
   const Speedometer({super.key});
   
   @override
+  State<Speedometer> createState() => _SpeedometerState();
+}
+
+class _SpeedometerState extends State<Speedometer> {
+  StreamSubscription<Position>? _posSub;
+  double _speedKmh = 0.0;
+  final double maxSpeed = 300;
+
+  Position? _lastPos;
+
+  @override
+  void initState() {
+    super.initState();
+    _posSub = LocationService.positionStream.listen((pos) {
+      double speedMps = pos.speed;
+
+      // Fallback: compute speed from displacement if device reports NaN/zero speed
+      if (speedMps.isNaN || speedMps <= 0) {
+        if (_lastPos != null && pos.timestamp != null && _lastPos!.timestamp != null) {
+          final dt = pos.timestamp!.difference(_lastPos!.timestamp!).inMilliseconds / 1000.0;
+          if (dt > 0.1) {
+            final dist = Geolocator.distanceBetween(_lastPos!.latitude, _lastPos!.longitude, pos.latitude, pos.longitude);
+            speedMps = dist / dt; // meters per second
+          }
+        }
+      }
+
+      final s = (speedMps.isNaN ? 0.0 : speedMps * 3.6);
+      setState(() => _speedKmh = s);
+
+      _lastPos = pos;
+    }, onError: (_) {});
+  }
+
+  @override
+  void dispose() {
+    _posSub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const double speedValue = 45;
-    const double maxSpeed = 100;
+    final double displaySpeed = _speedKmh.clamp(0, maxSpeed);
 
     return Center(
       child: SizedBox(
-        width: 300, // Ρυθμίστε το μέγεθος
-        height: 300, // Ρυθμίστε το μέγεθος
+        width: 225, // Ρυθμίστε το μέγεθος
+        height: 225, // Ρυθμίστε το μέγεθος
         child: SfRadialGauge(
           axes: <RadialAxis>[
             RadialAxis(
@@ -22,26 +65,34 @@ class Speedometer extends StatelessWidget {
               startAngle: 50, // Ξεκινάει από τις 180 μοίρες (κάτω αριστερά)
               endAngle: 310,     // Τελειώνει στις 0 μοίρες (κάτω δεξιά)
 
-              tickOffset: -0.3,
+              tickOffset: -0.295, //offset των άσπρων γραμμών
               offsetUnit: GaugeSizeUnit.factor,
               // Οπτικές ρυθμίσεις
               axisLineStyle: const AxisLineStyle(
-                thickness: 0.30, // Πάχος της γραμμής
+                thickness: 0.30, // Πάχος της γκρι γραμμής
                 thicknessUnit: GaugeSizeUnit.factor,
                 color: Color(0xFF333333), // Σκούρο γκρι για το μη χρησιμοποιούμενο μέρος
               ),
+
               showLabels: true,
-              labelOffset: -0.4,
+              labelOffset: -.45,
               // Ρυθμίσεις για τα μεγάλα ticks (0, 20, 40, 60, 80)
               majorTickStyle: const MajorTickStyle(
-                length: 0.29,
+                length: 0.28,
                 lengthUnit: GaugeSizeUnit.factor,
-                thickness: 1.5,
+                thickness: 2, //Πάχος των άσπρων γραμμών μέσα στο ταχύμετρο
                 color: Color.fromARGB(255, 255, 255, 255),
               ),
+              minorTickStyle: const MinorTickStyle(
+                length: 0.08,
+                lengthUnit: GaugeSizeUnit.factor,
+                thickness: 1,
+                color: Color.fromARGB(255, 141, 141, 141),
+              ),
+
               // Ρυθμίσεις για τα labels
               axisLabelStyle: const GaugeTextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 color: Colors.white,
                 fontWeight: FontWeight.w500
               ),
@@ -50,7 +101,7 @@ class Speedometer extends StatelessWidget {
               ranges: <GaugeRange>[
                 GaugeRange(
                   startValue: 0,
-                  endValue: speedValue,
+                  endValue: displaySpeed,
                   gradient: const SweepGradient(
                     colors: <Color>[
                       Color.fromARGB(255, 0, 0, 0),
@@ -58,7 +109,7 @@ class Speedometer extends StatelessWidget {
                       Color.fromARGB(255, 255, 255, 255),
                     ],
                     // Stops: Πού τελειώνει το 1ο χρώμα και πού αρχίζει το 2ο (σε κλάσματα 0.0 έως 1.0)
-                    stops: <double>[0.0, 0.95, 1.0], 
+                    stops: <double>[0.0, 0.90, 1.0], 
                   ),
                   startWidth: 0.30,
                   endWidth: 0.30,
@@ -66,19 +117,20 @@ class Speedometer extends StatelessWidget {
                 ),
               ],
               
+              
               // --- Ένδειξη Ταχύτητας (Annotation) ---
               annotations: <GaugeAnnotation>[
                 GaugeAnnotation(
                   angle: 90,
-                  positionFactor: 0.15,
+                  positionFactor: 0.20,
                   widget: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        '${speedValue.toInt()}',
+                        '${displaySpeed.toInt()}',
                         style: const TextStyle(
-                          fontSize: 70,
+                          fontSize: 55,
                           fontWeight: FontWeight.w400,
                           color: Colors.white,
                         ),
@@ -87,14 +139,25 @@ class Speedometer extends StatelessWidget {
                       const Text(
                         'km/h',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
                     ],
                   ),
                 ),
+                // GaugeAnnotation(
+                  
+                //   positionFactor: .5,
+                //   widget: Text(
+                //     'km/h',
+                //     style: TextStyle(
+                //       fontSize: 12,
+                //       fontWeight: FontWeight.w400,
+                //       color: Colors.white,
+                //     ),
+                //     ))
               ],
               
             ),

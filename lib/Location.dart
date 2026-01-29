@@ -3,6 +3,87 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
+// Broadcast service to expose live position updates to other widgets
+//
+// Αυτό το μικρό singleton παρέχει ένα broadcast `Stream<Position>` ώστε πολλαπλά widgets
+// να μπορούν να εγγραφούν και να λαμβάνουν ενημερώσεις θέσης χωρίς να χρειάζεται κάθε
+// widget να ανοίξει ξεχωριστή ροή θέσης. Η μέθοδος `addPosition` προωθεί `Position`
+// στον stream και το `dispose` κλείνει τον controller όταν δεν χρειάζεται πλέον.
+class LocationService {
+  static final StreamController<Position> _positionController = StreamController<Position>.broadcast();
+  static StreamSubscription<Position>? _positionSubscription;
+
+  static Stream<Position> get positionStream => _positionController.stream;
+
+  static void addPosition(Position pos) {
+    // Log position for debugging (latitude, longitude, speed m/s, heading)
+    // ignore: avoid_print
+    print('[LocationService] POS: ${pos.latitude.toStringAsFixed(6)}, ${pos.longitude.toStringAsFixed(6)}, speed=${pos.speed.toStringAsFixed(3)} m/s, heading=${pos.heading.toStringAsFixed(1)}°');
+    if (!_positionController.isClosed) _positionController.add(pos);
+  }
+
+  // Start tracking positions. Idempotent.
+  static Future<void> start() async {
+    if (_positionSubscription != null) return;
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        // ignore: avoid_print
+        print('[LocationService] Location services are disabled.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        // ignore: avoid_print
+        print('[LocationService] Permission denied, requesting permission...');
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          // ignore: avoid_print
+          print('[LocationService] Permission still denied by user.');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        // ignore: avoid_print
+        print('[LocationService] Permission permanently denied (deniedForever).');
+        return;
+      }
+
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high, // Υψηλή ακρίβεια
+        distanceFilter: 1, // Ενημέρωση κάθε 1 μέτρο κίνησης
+      );
+
+      // Start the Geolocator stream and forward positions to our broadcast controller
+      // ignore: avoid_print
+      print('[LocationService] Starting position stream (accuracy: ${locationSettings.accuracy}, distanceFilter: ${locationSettings.distanceFilter})');
+      _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings)
+          .listen((Position position) {
+        addPosition(position);
+      }, onError: (e) {
+        // ignore: avoid_print
+        print('[LocationService] Position stream error: $e');
+      });
+    } catch (e) {
+      // ignore: avoid_print
+      print('[LocationService] Error starting location tracking: $e');
+    }
+  }
+
+  static Future<void> stop() async {
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+  }
+
+  static Future<void> dispose() async {
+    await stop();
+    if (!_positionController.isClosed) await _positionController.close();
+  }
+}
+
 class Location extends StatefulWidget {
   const Location({super.key});
 
@@ -29,28 +110,32 @@ class _DirectionalMapScreenState extends State<Location> {
   @override
   void dispose() {
     // Σταματάμε την παρακολούθηση όταν το widget καταστραφεί
+    // ignore: avoid_print
+    print('[Location] Disposing, cancelling position subscription.');
     _positionStreamSubscription?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
 
   // Μέθοδος για την έναρξη παρακολούθησης της θέσης και της κατεύθυνσης
-  void _startLocationTracking() async {
-    // *Σημείωση: Δεν περιλαμβάνεται ο έλεγχος δικαιωμάτων. Βεβαιωθείτε ότι έχει γίνει.*
+  //
+  // Ενέργειες που γίνονται εδώ:
+  //  - Αποφυγή πολλαπλών εγγραφών (idempotent) ώστε να μην υπάρχουν διπλές ροές
+  //  - Χρήση του global `LocationService` για να ξεκινήσει η ροή (ελέγχοι & permissions εκεί)
+  //  - Εγγραφή σε `LocationService.positionStream` για ενημέρωση του χάρτη
+  Future<void> _startLocationTracking() async {
+    // Prevent multiple subscriptions (αποφυγή διπλών subscription)
+    if (_positionStreamSubscription != null) return;
 
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high, // Υψηλή ακρίβεια
-      distanceFilter: 1, // Ενημέρωση κάθε 1 μέτρο κίνησης
-    );
+    // Ensure the service is started (requests permissions if needed)
+    await LocationService.start();
 
-    // Δημιουργούμε τη ροή ενημερώσεων
-    _positionStreamSubscription = Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position position) {
-      
-      // Καλούμε το setState για να ενημερώσουμε τον χάρτη
+    // Subscribe to the global position stream to update the map
+    _positionStreamSubscription = LocationService.positionStream.listen((Position position) {
+      if (!mounted) return;
       setState(() {
         final LatLng newPosition = LatLng(position.latitude, position.longitude);
-        
+
         // 1. Δημιουργία ή ενημέρωση του Marker
         _markers.clear();
         _markers.add(
@@ -63,7 +148,7 @@ class _DirectionalMapScreenState extends State<Location> {
             anchor: const Offset(0.5, 0.5), // Το κέντρο του εικονιδίου είναι το σημείο αναφοράς
           ),
         );
-        
+
         // 2. Μετακινούμε την κάμερα για να παρακολουθήσει τη νέα θέση
         // Χρησιμοποιούμε ημισφαιρική μετάβαση (ease)
         _mapController?.animateCamera(
@@ -77,6 +162,9 @@ class _DirectionalMapScreenState extends State<Location> {
           ),
         );
       });
+    }, onError: (e) {
+      // ignore: avoid_print
+      print('[Location] position stream error: $e');
     });
   }
 
@@ -94,8 +182,6 @@ class _DirectionalMapScreenState extends State<Location> {
         ),
         onMapCreated: (controller) {
           _mapController = controller;
-          // Μετά την δημιουργία, ξεκινάμε την παρακολούθηση
-          _startLocationTracking(); 
         },
         markers: _markers,
         // myLocationEnabled και myLocationButtonEnabled μπορούν να παραμείνουν true, 
