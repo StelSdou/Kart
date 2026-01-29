@@ -1,16 +1,16 @@
-# kart_v0
+# SpeedTrace (Version 0.1)
 
-A new Flutter project.
+## What's new in this version
 
-## Getting Started
+App has a name, speedometer is functional
 
-This project is a starting point for a Flutter application.
+## Upcoming Features
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Metric/Imperial setting,
+Settings tab,
+App logo,
+Different theme modes (Normal, Sport, Track),
+HUD mode,
+Map tracking,
+Portrait view,
+OBD port data
