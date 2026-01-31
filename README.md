@@ -1,4 +1,4 @@
-# SpeedTrace (Version 0.1)
+# SpeedTrace (Version 0.2)
 
 ## What's new in this version
 
