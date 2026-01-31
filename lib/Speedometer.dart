@@ -14,7 +14,7 @@ class Speedometer extends StatefulWidget {
 class _SpeedometerState extends State<Speedometer> {
   StreamSubscription<Position>? _posSub;
   double _speedKmh = 0.0;
-  final double maxSpeed = 300;
+  final double maxSpeed = 300.0; // Μέγιστη ταχύτητα στο ταχύμετρο (km/h)
 
   Position? _lastPos;
 
@@ -75,8 +75,12 @@ class _SpeedometerState extends State<Speedometer> {
               ),
 
               showLabels: true,
+              showFirstLabel: true,
+              showLastLabel: true,
               labelOffset: -.45,
               // Ρυθμίσεις για τα μεγάλα ticks (0, 20, 40, 60, 80)
+              //interval: 50, // Labels every 50 km/h (0, 50, 100, 150, 200, 250, 300)
+              minorTicksPerInterval: 4, // Show minor ticks (and labels) between major ticks
               majorTickStyle: const MajorTickStyle(
                 length: 0.28,
                 lengthUnit: GaugeSizeUnit.factor,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kart_v0/Timerometer.dart';
-import 'package:kart_v0/BestLaps.dart';
+import 'package:kart_v0/timer.dart';
+import 'package:kart_v0/best_laps.dart';
 
 class Laps extends StatelessWidget {
   const Laps({super.key});
@@ -11,7 +11,7 @@ class Laps extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Timerometer(),
+          TimerWidget(),
           Bestlaps(),
         ],
     );

@@ -6,14 +6,14 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 // Ξεκινάει αυτόματα κατά το initState() και σταματάει όταν φτάσει
 // στο 1:30.000 (90.000 ms). Μπορείτε αργότερα να εκθέσετε start/stop
 // μεθόδους αν θέλετε χειροκίνητο έλεγχο.
-class Timerometer extends StatefulWidget {
-  const Timerometer({super.key});
+class TimerWidget extends StatefulWidget {
+  const TimerWidget({super.key});
 
   @override
-  _TimerometerState createState() => _TimerometerState();
+  _TimerState createState() => _TimerState();
 }
 
-class _TimerometerState extends State<Timerometer> {
+class _TimerState extends State<TimerWidget> {
   // Χρησιμοποιούμε το `Stopwatch` για ακριβή μέτρηση χρόνου σε ms
   final Stopwatch _stopwatch = Stopwatch();
   // Περιοδικός Timer που προκαλεί ενημέρωση της UI (rebuild)
@@ -110,6 +110,7 @@ class _TimerometerState extends State<Timerometer> {
               showLabels: true,
               labelOffset: -0.40,
               // Ρυθμίσεις για τα μεγάλα ticks (0, 20, 40, 60, 80)
+              minorTicksPerInterval: elapsedSeconds < maxTime ? 4 : 0, // Show minor ticks
               majorTickStyle: const MajorTickStyle(
                 length: 0.28,
                 lengthUnit: GaugeSizeUnit.factor,
