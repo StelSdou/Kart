@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kart_v0/services/settings_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Function(bool)? onTrackModeChanged;
@@ -6,7 +7,7 @@ class SettingsScreen extends StatefulWidget {
   final Function(bool)? onUseCupertinoChanged;
   final bool currentUseCupertino;
 
-  const SettingsScreen({
+  const SettingsScreen({super.key, 
     this.onTrackModeChanged,
     this.currentTrackMode = false,
     this.onUseCupertinoChanged,
@@ -26,6 +27,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     trackMode = widget.currentTrackMode;
     useCupertino = widget.currentUseCupertino;
+    // initialize slider value from settings
+    SettingsService.load().then((_) {
+      setState(() {});
+    });
   }
 
   @override
@@ -80,6 +85,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             // Add more settings options here
+            const SizedBox(height: 16),
+            ListTile(
+              title: const Text('Max speed (km/h)', style: TextStyle(color: Colors.white)),
+              subtitle: ValueListenableBuilder<double>(
+                valueListenable: SettingsService.maxSpeedNotifier,
+                builder: (context, value, child) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Slider(
+                      value: value,
+                      min: 50,
+                      max: 400,
+                      // divisions = (max - min) / step -> (400-50)/50 = 7
+                      divisions: 7,
+                      activeColor: const Color.fromARGB(255, 255, 0, 51),
+                      label: value.toInt().toString(),
+                      onChanged: (v) {
+                        SettingsService.setMaxSpeed(v);
+                      },
+                    ),
+                    Text('${value.toInt()} km/h', style: const TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

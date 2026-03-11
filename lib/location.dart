@@ -2,9 +2,6 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 
 /// Service that broadcasts live location updates to all listeners.
-///
-/// This singleton provides a broadcast stream of [Position] objects that multiple
-/// widgets can subscribe to without needing to manage their own location streams.
 class LocationService {
   static final StreamController<Position> _positionController = StreamController<Position>.broadcast();
   static StreamSubscription<Position>? _positionSubscription;

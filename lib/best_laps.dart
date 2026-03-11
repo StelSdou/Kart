@@ -9,7 +9,6 @@ class Bestlaps extends StatelessWidget {
     String first = '01:23:456';
     int lap = 3;
 
-    const Color selectColor = Color.fromARGB(255, 255, 0, 0);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,

@@ -1,172 +1,137 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:kart_v0/Location.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:kart_v0/services/ride_service.dart';
+import 'package:kart_v0/services/settings_service.dart';
 
+/// Displays only the radial speed gauge.
+/// The speed number is red while idle or paused, white while recording.
 class Speedometer extends StatefulWidget {
   const Speedometer({super.key});
-  
+
   @override
   State<Speedometer> createState() => _SpeedometerState();
 }
 
 class _SpeedometerState extends State<Speedometer> {
-  StreamSubscription<Position>? _posSub;
-  double _speedKmh = 0.0;
-  final double maxSpeed = 300.0; // Μέγιστη ταχύτητα στο ταχύμετρο (km/h)
-
-  Position? _lastPos;
+  double _gaugeMax = 300.0;
 
   @override
   void initState() {
     super.initState();
-    _posSub = LocationService.positionStream.listen((pos) {
-      double speedMps = pos.speed;
+    SettingsService.load().then((_) {
+      if (mounted) setState(() => _gaugeMax = SettingsService.maxSpeedNotifier.value);
+    });
+    SettingsService.maxSpeedNotifier.addListener(_rebuild);
+    RideService.speedKmh.addListener(_rebuild);
+    RideService.state.addListener(_rebuild);
+  }
 
-      // Fallback: compute speed from displacement if device reports NaN/zero speed
-      if (speedMps.isNaN || speedMps <= 0) {
-        if (_lastPos != null && pos.timestamp != null && _lastPos!.timestamp != null) {
-          final dt = pos.timestamp!.difference(_lastPos!.timestamp!).inMilliseconds / 1000.0;
-          if (dt > 0.1) {
-            final dist = Geolocator.distanceBetween(_lastPos!.latitude, _lastPos!.longitude, pos.latitude, pos.longitude);
-            speedMps = dist / dt; // meters per second
-          }
-        }
-      }
-
-      final s = (speedMps.isNaN ? 0.0 : speedMps * 3.6);
-      setState(() => _speedKmh = s);
-
-      _lastPos = pos;
-    }, onError: (_) {});
+  void _rebuild() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _posSub?.cancel();
+    SettingsService.maxSpeedNotifier.removeListener(_rebuild);
+    RideService.speedKmh.removeListener(_rebuild);
+    RideService.state.removeListener(_rebuild);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final double displaySpeed = _speedKmh.clamp(0, maxSpeed);
+    final isRecording = RideService.state.value == RideState.recording;
+    final speed       = RideService.speedKmh.value.clamp(0.0, _gaugeMax);
+    final textColor   = isRecording
+        ? Colors.white
+        : const Color.fromARGB(255, 255, 0, 51);
 
-    return Center(
-      child: SizedBox(
-        width: 225, // Ρυθμίστε το μέγεθος
-        height: 225, // Ρυθμίστε το μέγεθος
-        child: SfRadialGauge(
-          axes: <RadialAxis>[
-            RadialAxis(
-              // Ρυθμίσεις για να μοιάζει με το ημικύκλιο
-              minimum: 0,
-              maximum: maxSpeed,
-              startAngle: 50, // Ξεκινάει από τις 180 μοίρες (κάτω αριστερά)
-              endAngle: 310,     // Τελειώνει στις 0 μοίρες (κάτω δεξιά)
-
-              tickOffset: -0.295, //offset των άσπρων γραμμών
-              offsetUnit: GaugeSizeUnit.factor,
-              // Οπτικές ρυθμίσεις
-              axisLineStyle: const AxisLineStyle(
-                thickness: 0.30, // Πάχος της γκρι γραμμής
-                thicknessUnit: GaugeSizeUnit.factor,
-                color: Color(0xFF333333), // Σκούρο γκρι για το μη χρησιμοποιούμενο μέρος
-              ),
-
-              showLabels: true,
-              showFirstLabel: true,
-              showLastLabel: true,
-              labelOffset: -.45,
-              // Ρυθμίσεις για τα μεγάλα ticks (0, 20, 40, 60, 80)
-              //interval: 50, // Labels every 50 km/h (0, 50, 100, 150, 200, 250, 300)
-              minorTicksPerInterval: 4, // Show minor ticks (and labels) between major ticks
-              majorTickStyle: const MajorTickStyle(
-                length: 0.28,
-                lengthUnit: GaugeSizeUnit.factor,
-                thickness: 2, //Πάχος των άσπρων γραμμών μέσα στο ταχύμετρο
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
-              minorTickStyle: const MinorTickStyle(
-                length: 0.08,
-                lengthUnit: GaugeSizeUnit.factor,
-                thickness: 1,
-                color: Color.fromARGB(255, 141, 141, 141),
-              ),
-
-              // Ρυθμίσεις για τα labels
-              axisLabelStyle: const GaugeTextStyle(
-                fontSize: 15,
-                color: Colors.white,
-                fontWeight: FontWeight.w500
-              ),
-              
-              // --- Ζώνες Χρωμάτων (Range) ---
-              ranges: <GaugeRange>[
-                GaugeRange(
-                  startValue: 0,
-                  endValue: displaySpeed,
-                  gradient: const SweepGradient(
-                    colors: <Color>[
-                      Color.fromARGB(255, 0, 0, 0),
-                      Color.fromARGB(255, 255, 0, 51),
-                      Color.fromARGB(255, 255, 255, 255),
-                    ],
-                    // Stops: Πού τελειώνει το 1ο χρώμα και πού αρχίζει το 2ο (σε κλάσματα 0.0 έως 1.0)
-                    stops: <double>[0.0, 0.90, 1.0], 
-                  ),
-                  startWidth: 0.30,
-                  endWidth: 0.30,
-                  sizeUnit: GaugeSizeUnit.factor,
-                ),
-              ],
-              
-              
-              // --- Ένδειξη Ταχύτητας (Annotation) ---
-              annotations: <GaugeAnnotation>[
-                GaugeAnnotation(
-                  angle: 90,
-                  positionFactor: 0.10,
-                  widget: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        '${displaySpeed.toInt()}',
-                        style: const TextStyle(
-                          fontSize: 55,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white,
-                        ),
-                      ),
-                      // "km/h"
-                      const Text(
-                        'km/h',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // GaugeAnnotation(
-                  
-                //   positionFactor: .5,
-                //   widget: Text(
-                //     'km/h',
-                //     style: TextStyle(
-                //       fontSize: 12,
-                //       fontWeight: FontWeight.w400,
-                //       color: Colors.white,
-                //     ),
-                //     ))
-              ],
-              
+    return SizedBox(
+      width: 225,
+      height: 225,
+      child: SfRadialGauge(
+        axes: [
+          RadialAxis(
+            minimum: 0,
+            maximum: _gaugeMax,
+            startAngle: 90,
+            endAngle: 360,
+            tickOffset: -0.295,
+            offsetUnit: GaugeSizeUnit.factor,
+            axisLineStyle: const AxisLineStyle(
+              thickness: 0.30,
+              thicknessUnit: GaugeSizeUnit.factor,
+              color: Color(0xFF333333),
             ),
-          ],
-        ),
+            showLabels: true,
+            showFirstLabel: true,
+            showLastLabel: true,
+            labelOffset: -0.45,
+            minorTicksPerInterval: 4,
+            majorTickStyle: const MajorTickStyle(
+              length: 0.28,
+              lengthUnit: GaugeSizeUnit.factor,
+              thickness: 2,
+              color: Colors.white,
+            ),
+            minorTickStyle: const MinorTickStyle(
+              length: 0.08,
+              lengthUnit: GaugeSizeUnit.factor,
+              thickness: 1,
+              color: Color.fromARGB(255, 141, 141, 141),
+            ),
+            axisLabelStyle: const GaugeTextStyle(
+              fontSize: 15,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+            ranges: [
+              GaugeRange(
+                startValue: 0,
+                endValue: speed,
+                gradient: const SweepGradient(
+                  colors: [
+                    Color.fromARGB(255, 0, 0, 0),
+                    Color.fromARGB(255, 255, 0, 51),
+                    Color.fromARGB(255, 255, 255, 255),
+                  ],
+                  stops: [0.0, 0.90, 1.0],
+                ),
+                startWidth: 0.30,
+                endWidth: 0.30,
+                sizeUnit: GaugeSizeUnit.factor,
+              ),
+            ],
+            annotations: [
+              GaugeAnnotation(
+                angle: 90,
+                positionFactor: 0.10,
+                widget: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${speed.toInt()}',
+                      style: TextStyle(
+                        fontSize: 55,
+                        fontWeight: FontWeight.w400,
+                        color: textColor,
+                      ),
+                    ),
+                    Text(
+                      'km/h',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
