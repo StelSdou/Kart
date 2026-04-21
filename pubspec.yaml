@@ -35,7 +35,12 @@ dependencies:
   google_maps_flutter: ^2.5.3
   wakelock_plus: ^1.4.0
   shared_preferences: ^2.1.0
+<<<<<<< HEAD
     
+=======
+  sensors_plus: ^7.0.0
+  animated_digit: ^3.3.2  
+>>>>>>> old_ver
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -64,9 +69,14 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+<<<<<<< HEAD
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+=======
+  assets:
+    - assets/
+>>>>>>> old_ver
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -79,6 +89,7 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+<<<<<<< HEAD
   # fonts:
   #   - family: Schyler
   #     fonts:
@@ -90,6 +101,24 @@ flutter:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
+=======
+  fonts:
+    - family: RobotoMono
+      fonts:
+        #- asset: assets/fonts/RobotoMono-VariableFont_wght.ttf
+        #- asset: assets/fonts/Inter-variableFont_opsz,wght.ttf
+          #weight: 400
+        - asset: assets/fonts/Barlow-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Barlow-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Barlow-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Barlow-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Barlow-ExtraBold.ttf
+          weight: 800
+>>>>>>> old_ver
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
