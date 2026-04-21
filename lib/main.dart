@@ -39,16 +39,38 @@ class _MyAppState extends State<MyApp> {
             platform: TargetPlatform.iOS,
             useMaterial3: false,
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-            scaffoldBackgroundColor: const Color.fromARGB(255, 10, 10, 15),
+            scaffoldBackgroundColor: Colors.transparent,
+            fontFamily: 'RobotoMono',
           )
         : ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 10, 10, 15),
+            scaffoldBackgroundColor: Colors.transparent,
             useMaterial3: true,
+            fontFamily: 'RobotoMono',
           );
 
     return MaterialApp(
       title: 'SpeedTrace',
-      theme: theme,
+      theme: theme.copyWith(
+    // Kill the ripple everywhere
+    splashFactory: NoSplash.splashFactory,
+    highlightColor: Colors.transparent,
+    splashColor: Colors.transparent,
+
+    // Optional: subtle overlay instead
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+        overlayColor: WidgetStateProperty.resolveWith<Color?>(
+          (states) {
+            if (states.contains(WidgetState.pressed)) {
+              return Colors.white.withOpacity(0.08); // barely visible
+            }
+            return null;
+          },
+        ),
+        splashFactory: NoSplash.splashFactory,
+      ),
+    ),
+  ),
       debugShowCheckedModeBanner: false,
       home: DashboardScreen(
         onUseCupertinoChanged: (v) => setState(() => _useCupertino = v),

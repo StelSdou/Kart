@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// Service that broadcasts live location updates to all listeners.
@@ -46,10 +47,19 @@ class LocationService {
         return;
       }
 
-      const LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 1, // Update every 1 meter of movement
-      );
+      LocationSettings locationSettings;
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        locationSettings = AndroidSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 0,
+          intervalDuration: const Duration(milliseconds: 200), // Request 5Hz updates
+        );
+      } else {
+        locationSettings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 0,
+        );
+      }
 
       // ignore: avoid_print
       print('[LocationService] Starting GPS stream (high accuracy, 1m filter)');
