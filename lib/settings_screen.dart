@@ -36,10 +36,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Settings',
           style: TextStyle(
-            color: Color.fromARGB(255, 255, 0, 51),
+            color: theme.accent,
             fontWeight: FontWeight.w600,
             // letterSpacing: 2,
           ),
@@ -72,6 +72,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: <Widget>[
 
             // ── Enable Notifications Button ────────────────────────────────────────────────────────────────
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 12, bottom: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'General',
+                  style: TextStyle(
+                    color: theme.textPrimary.withOpacity(0.55),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ),
+           Divider(
+            color: Color.fromARGB(30, 255, 255, 255),
+            height: 1.5,
+            indent: 10,
+            endIndent: 10
+            ),
+           const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(28),
               child: BackdropFilter(
@@ -97,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SwitchListTile(
                         title: Text('Enable Notifications', style: TextStyle(color: theme.textPrimary)),
                         value: true, // Placeholder for actual setting
-                        activeThumbColor: const Color.fromARGB(255, 255, 0, 51),
+                        activeThumbColor: theme.accent,
                         onChanged: (bool value) {
                           // Logic to save setting
                         },
@@ -107,14 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
 
-           // ── Design ────────────────────────────────────────────────────
-           const SizedBox(height: 16),
-           Divider(
-            color: Color.fromARGB(30, 255, 255, 255),
-            height: 1.5,
-            indent: 10,
-            endIndent: 10
-            ),
+           // ── Theme ────────────────────────────────────────────────────
            const SizedBox(height: 16),
            ClipRRect(
               borderRadius: BorderRadius.circular(28),
@@ -138,64 +154,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   child: 
-                    // ListTile(
-                    //   title: const Text('Speedometer Design', style: TextStyle(color: Colors.white)),
-                    //   trailing: ValueListenableBuilder<String>(
-                    //     valueListenable: SettingsService.designNotifier,
-                    //     builder: (context, design, child) {
-                    //       return DropdownButton<String>(
-                    //         value: design,
-                    //         dropdownColor: const Color.fromARGB(255, 30, 30, 40),
-                    //         underline: const SizedBox.shrink(),
-                    //         items: const [
-                    //           DropdownMenuItem(value: 'Default', child: Text('Default', style: TextStyle(color: Colors.white))),
-                    //           DropdownMenuItem(value: 'Retro Analog', child: Text('Retro Analog', style: TextStyle(color: Colors.white))),
-                    //         ],
-                    //         onChanged: (String? newValue) {
-                    //           if (newValue != null) {
-                    //             SettingsService.setDesign(newValue); // 1. Calls SettingsService.setDesign('Retro Analog') or ('Default')
-                    //           }
-                    //         },
-                    //       );
-                    //     },
-                    //   ),
-                    // ),
-                    DropdownButton<AppTheme>(
-                      value: SettingsService.themeNotifier.value,
-                      items: AppTheme.all.map((t) => DropdownMenuItem(
-                        value: t,
-                        child: Text(t.id, style: TextStyle(color: theme.textPrimary)),
-                      )).toList(),
-                      onChanged: (t) { if (t != null) SettingsService.setTheme(t); },
+                    ListTile(
+                      title: Text('Theme', style: TextStyle(color: theme.textPrimary)),
+                      trailing: ValueListenableBuilder<AppTheme>(
+                        valueListenable: SettingsService.preferredTourThemeNotifier,
+                        builder: (context, currentTheme, _) => DropdownButton<AppTheme>(
+                          value: currentTheme,
+                          dropdownColor: theme.cardBackground.withOpacity(1.0),
+                          underline: const SizedBox.shrink(),
+                          items: AppTheme.all
+                              .where((t) => t.id != 'Sport')
+                              .map((t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t.id, style: TextStyle(color: theme.textPrimary)),
+                          )).toList(),
+                          onChanged: (t) { if (t != null) SettingsService.setTheme(t); },
+                        ),
+                      ),
                     )
                 ),
               ),
             ),
-            
-
-            /* 
-               To simplify: Use widget.currentTrackMode directly instead of 'trackMode'.
-               When the value changes, call the callback immediately.
-            */
-            // ── Mode select ────────────────────────────────────────────────────
-            /*
-            ListTile(
-              title: const Text('Driving Mode', style: TextStyle(color: Colors.white)),
-              trailing: DropdownButton<String>(
-                value: widget.currentTrackMode ? 'Track' : 'Normal',
-                dropdownColor: const Color.fromARGB(255, 30, 30, 40),
-                underline: const SizedBox.shrink(),
-                items: const [
-                  DropdownMenuItem(value: 'Normal', child: Text('Normal', style: TextStyle(color: Colors.white))),
-                  DropdownMenuItem(value: 'Track', child: Text('Track', style: TextStyle(color: Colors.white))),
-                ],
-                onChanged: (String? newValue) {
-                  if (newValue == null) return;
-                  widget.onTrackModeChanged?.call(newValue == 'Track');
-                },
+            // ── Mode ────────────────────────────────────────────────────
+           const SizedBox(height: 16),
+           ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.cardBackground,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                        color: theme.cardBorder,
+                        width: 1.0,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.16),
+                        blurRadius: 20,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: 
+                    ListTile(
+                      title: Text('Mode', style: TextStyle(color: theme.textPrimary)),
+                      trailing: ValueListenableBuilder<DrivingMode>(
+                        valueListenable: SettingsService.modeNotifier,
+                        builder: (context, currentMode, _) => DropdownButton<DrivingMode>(
+                          value: currentMode,
+                          dropdownColor: theme.cardBackground.withOpacity(1.0),
+                          underline: const SizedBox.shrink(),
+                          items: DrivingMode.values.map((m) => DropdownMenuItem(
+                            value: m,
+                            child: Text(m.name.toUpperCase(), style: TextStyle(color: theme.textPrimary)),
+                          )).toList(),
+                          onChanged: (m) { if (m != null) SettingsService.setMode(m); },
+                        ),
+                      ),
+                    )
+                ),
               ),
             ),
-            */
 
             // ── Cupertino Look ────────────────────────────────────────────────────
             // SwitchListTile(
@@ -246,7 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 max: 480,
                                 // divisions = (max - min) / step
                                 divisions: 8, //160, 200, 240, 280, 320, 360, 400, 440, 480
-                                activeColor: const Color.fromARGB(255, 255, 0, 51),
+                                activeColor: const Color.fromARGB(255, 255, 0, 64),
                                 label: value.toInt().toString(),
                                 onChanged: (v) {
                                   SettingsService.setMaxSpeed(v);
@@ -262,13 +284,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             // ── Reset Odometer button ────────────────────────────────────────────────────────────────
-            const SizedBox(height: 16),
-           Divider(
-            color: Color.fromARGB(30, 255, 255, 255),
-            height: 1.5,
-            indent: 10,
-            endIndent: 10
-            ),
            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(28),
@@ -277,10 +292,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Container(
                   padding: EdgeInsets.zero,
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(20, 255, 255, 255),
+                    //color: const Color.fromARGB(20, 255, 255, 255),
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: const Color.fromARGB(255, 255, 0, 51),
+                      color: const Color.fromARGB(255, 255, 0, 64),
                       width: 1.5,
                     ),
                     boxShadow: const [
@@ -305,19 +320,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (states.contains(WidgetState.pressed)) {
                             return Colors.white.withOpacity(0.15);
                           }
-                          return const Color.fromARGB(20, 255, 0, 51);
+                          return Colors.transparent;
                         },
                       ),
                       minimumSize: WidgetStateProperty.all(const Size(double.infinity, 65)),
                       shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(28))),
                       animationDuration: const Duration(milliseconds: 150),
                     ),
-                    child: const Text('RESET ODOMETER', style: TextStyle(color:  Color.fromARGB(255, 255, 0, 51), fontSize: 17, fontWeight: FontWeight.w700)),
+                    child: const Text('RESET ODOMETER', style: TextStyle(color:  Color.fromARGB(255, 255, 0, 64), fontSize: 17, fontWeight: FontWeight.w700)),
                   ),
                 )
               )
-            )
-
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 12, bottom: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Support',
+                  style: TextStyle(
+                    color: theme.textPrimary.withOpacity(0.55),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ),
+           Divider(
+            color: Color.fromARGB(30, 255, 255, 255),
+            height: 1.5,
+            indent: 10,
+            endIndent: 10
+            ),
 
             
           ],

@@ -66,7 +66,18 @@ class _RideStatsState extends State<RideStats> {
       // Now theme.speedText replaces your textColor logic:
       final textColor = isRecording ? theme.accent : theme.speedText;
 
-      return ClipRRect( //
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect( //
       borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -80,13 +91,13 @@ class _RideStatsState extends State<RideStats> {
               color: theme.cardBorder,
               width: 1.0,
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.16),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
-            ],
+            // boxShadow: const [
+            //   BoxShadow(
+            //     color: Color.fromRGBO(0, 0, 0, 0.16),
+            //     blurRadius: 20,
+            //     offset: Offset(0, 10),
+            //   ),
+            // ],
           ),
           child: 
           Column(
@@ -133,7 +144,8 @@ class _RideStatsState extends State<RideStats> {
           ),
         ),
       ),
-    );
+    ),
+      );
       }
       );
   }

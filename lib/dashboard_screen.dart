@@ -27,61 +27,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  DrivingMode _currentMode = DrivingMode.tour;
-
-  /// Stores the theme (Light/Dark) that was active before switching to Sport mode.
-  /// This ensures switching back from Sport restores the user's previous preference.
-  AppTheme _previousNonSportTheme = AppTheme.dark;
-
   @override
   void initState() {
     super.initState();
     RideService.init(); // Load persistent odometer data
     SettingsService.load(); // Load persistent settings (e.g. gauge choice)
     RideService.state.addListener(_rebuild);
-    SettingsService.themeNotifier.addListener(_syncModeWithTheme);
   }
 
   void _rebuild() {
     if (mounted) setState(() {});
   }
 
-  void _syncModeWithTheme() {
-    if (!mounted) return;
-    // If the theme is manually changed away from the Sport theme (via settings)
-    // while we are still in Sport mode, sync the mode selector back to Tour.
-    if (SettingsService.themeNotifier.value.id != 'Sport' &&
-        _currentMode == DrivingMode.sport) {
-      setState(() {
-        _currentMode = DrivingMode.tour;
-      });
-    }
-  }
-
-  void _onModeChanged(DrivingMode mode) {
-    final oldMode = _currentMode;
-    setState(() {
-      _currentMode = mode;
-    });
-
-    // Automatically switch the app theme based on the selected driving mode.
-    if (mode == DrivingMode.sport) {
-      // If entering Sport mode, remember what the theme was before it turned orange
-      if (oldMode != DrivingMode.sport) {
-        _previousNonSportTheme = SettingsService.themeNotifier.value;
-      }
-      // Use the Sport theme visually, but do not save it as the persistent default.
-      SettingsService.themeNotifier.value = AppTheme.sport;
-    } else if (oldMode == DrivingMode.sport) {
-      // If leaving Sport mode, restore the previously active theme (Light or Dark)
-      SettingsService.setTheme(_previousNonSportTheme);
-    }
-  }
-
   @override
   void dispose() {
     RideService.state.removeListener(_rebuild);
-    SettingsService.themeNotifier.removeListener(_syncModeWithTheme);
     super.dispose();
   }
 
@@ -129,8 +89,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // ── Settings button ───────────────────────────────────────────────
           SettingsButton(
-            currentMode: _currentMode,
-            onModeChanged: _onModeChanged,
             onUseCupertinoChanged: widget.onUseCupertinoChanged,
             currentUseCupertino: widget.currentUseCupertino,
           ),
@@ -139,9 +97,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Positioned(
             top: 50,
             right: 16,
-            child: DrivingModeSwitcher(
-              currentMode: _currentMode,
-              onModeChanged: _onModeChanged,
+            child: ValueListenableBuilder<DrivingMode>(
+              valueListenable: SettingsService.modeNotifier,
+              builder: (context, mode, _) => DrivingModeSwitcher(
+                currentMode: mode,
+                onModeChanged: (newMode) => SettingsService.setMode(newMode),
+              ),
             ),
           ),
 
@@ -180,7 +141,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const Spacer(),
-        if (_currentMode == DrivingMode.track && !isIdle) const Laps(),
+        ValueListenableBuilder<DrivingMode>(
+          valueListenable: SettingsService.modeNotifier,
+          builder: (context, mode, _) => 
+            (mode == DrivingMode.track && !isIdle) ? const Laps() : const SizedBox.shrink(),
+        ),
         const SizedBox(height: 16), // clearance for bottom controls
       ],
     );
@@ -212,10 +177,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const RideStats(),
-            if (_currentMode == DrivingMode.track && !isIdle) ...[
-              const SizedBox(height: 16),
-              const Laps(),
-            ],
+            ValueListenableBuilder<DrivingMode>(
+              valueListenable: SettingsService.modeNotifier,
+              builder: (context, mode, _) => mode == DrivingMode.track && !isIdle 
+                ? Column(children: [const SizedBox(height: 16), const Laps()])
+                : const SizedBox.shrink(),
+            ),
           ],
         ),
       ],

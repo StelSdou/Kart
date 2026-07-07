@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:kart_v0/app_theme.dart';
 import 'package:kart_v0/services/ride_service.dart';
+import 'package:kart_v0/services/settings_service.dart';
 
 class RideControlsBar extends StatelessWidget {
   final bool isIdle;
@@ -25,7 +27,21 @@ class RideControlsBar extends StatelessWidget {
   // ── START ────────────────────────────────────────────────────────────────────
 
   Widget _buildStartButton() {
-    return ClipRRect(
+    return ValueListenableBuilder<AppTheme>(
+      valueListenable: SettingsService.themeNotifier,
+      builder: (context, theme, child) {
+    return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -33,12 +49,12 @@ class RideControlsBar extends StatelessWidget {
           height: 65,
           padding: EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: const Color.fromARGB(20, 255, 255, 255),
+            color: const Color.fromARGB(20, 255, 0, 64),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white, width: 1),
+            border: Border.all(color: const Color.fromARGB(255, 255, 0, 64), width: 1),
             boxShadow: const [
               BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.18),
+                color: Color.fromRGBO(0, 0, 0, 0.16),
                 blurRadius: 20,
                 offset: Offset(0, 8),
               ),
@@ -52,7 +68,7 @@ class RideControlsBar extends StatelessWidget {
                   if (states.contains(WidgetState.pressed)) {
                     return Colors.white.withOpacity(0.15);
                   }
-                  return const Color.fromARGB(20, 255, 255, 255);
+                  return Colors.transparent;
                 },
               ),
               elevation: WidgetStateProperty.all(0),
@@ -67,18 +83,18 @@ class RideControlsBar extends StatelessWidget {
               ),
               animationDuration: const Duration(milliseconds: 150),
             ),
-            child: const FittedBox(
+            child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.play_arrow,
-                      color: Color.fromARGB(255, 255, 0, 51), size: 28),
+                      color: theme.accent, size: 28),
                   SizedBox(width: 8),
                   Text(
                     'START',
                     style: TextStyle(
-                      color: Color.fromARGB(255, 255, 0, 51),
+                      color: theme.accent,
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                     ),
@@ -89,6 +105,9 @@ class RideControlsBar extends StatelessWidget {
           ),
         ),
       ),
+    )
+    );
+    }
     );
   }
 
@@ -98,6 +117,113 @@ class RideControlsBar extends StatelessWidget {
     return Row(
       spacing: 10,
       children: [
+        // RESET
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: ElevatedButton(
+                onPressed: RideService.resetStats,
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (states) {
+                      if (states.contains(WidgetState.pressed)) {
+                        return Colors.white.withOpacity(0.15);
+                      }
+                      return const Color.fromARGB(20, 255, 255, 255);
+                    },
+                  ),
+                  elevation: WidgetStateProperty.all(0),
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  minimumSize: WidgetStateProperty.all(const Size(0, 65)),
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    side: const BorderSide(color: Colors.white, width: 1),
+                  )),
+                  animationDuration: const Duration(milliseconds: 150),
+                ),
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.refresh, color: Colors.white, size: 23),
+                      SizedBox(width: 4),
+                      Text(
+                        'RESET',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        
+
+        // STOP
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: ElevatedButton(
+                onPressed: () => RideService.stop(),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (states) {
+                      if (states.contains(WidgetState.pressed)) {
+                        return Colors.white.withOpacity(0.15);
+                      }
+                      return const Color.fromARGB(20, 255, 0, 24);
+                    },
+                  ),
+                  elevation: WidgetStateProperty.all(0),
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  minimumSize: WidgetStateProperty.all(const Size(0, 65)),
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 255, 0, 64),
+                      width: 1,
+                    ),
+                  )),
+                  animationDuration: const Duration(milliseconds: 150),
+                ),
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.stop,
+                          color: Color.fromARGB(255, 255, 0, 64), size: 23),
+                      SizedBox(width: 4),
+                      Text(
+                        'STOP',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 0, 64),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
         // PAUSE / RESUME
         Expanded(
           child: ClipRRect(
@@ -138,7 +264,7 @@ class RideControlsBar extends StatelessWidget {
                         isPaused ? Icons.play_arrow : Icons.pause,
                         color: isPaused
                             ? Colors.white
-                            : const Color.fromARGB(255, 255, 0, 51),
+                            : const Color.fromARGB(255, 255, 0, 64),
                         size: 23,
                       ),
                       const SizedBox(width: 4),
@@ -147,113 +273,7 @@ class RideControlsBar extends StatelessWidget {
                         style: TextStyle(
                           color: isPaused
                               ? Colors.white
-                              : const Color.fromARGB(255, 255, 0, 51),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // STOP
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: ElevatedButton(
-                onPressed: () => RideService.stop(),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                    (states) {
-                      if (states.contains(WidgetState.pressed)) {
-                        return Colors.white.withOpacity(0.15);
-                      }
-                      return const Color.fromARGB(20, 255, 0, 51);
-                    },
-                  ),
-                  elevation: WidgetStateProperty.all(0),
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  minimumSize: WidgetStateProperty.all(const Size(0, 65)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    side: const BorderSide(
-                      color: Color.fromARGB(255, 255, 0, 51),
-                      width: 1,
-                    ),
-                  )),
-                  animationDuration: const Duration(milliseconds: 150),
-                ),
-                child: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.stop,
-                          color: Color.fromARGB(255, 255, 0, 51), size: 23),
-                      SizedBox(width: 4),
-                      Text(
-                        'STOP',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 0, 51),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // RESET
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: ElevatedButton(
-                onPressed: RideService.resetStats,
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                    (states) {
-                      if (states.contains(WidgetState.pressed)) {
-                        return Colors.white.withOpacity(0.15);
-                      }
-                      return const Color.fromARGB(20, 255, 255, 255);
-                    },
-                  ),
-                  elevation: WidgetStateProperty.all(0),
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  minimumSize: WidgetStateProperty.all(const Size(0, 65)),
-                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    side: const BorderSide(color: Colors.white, width: 1),
-                  )),
-                  animationDuration: const Duration(milliseconds: 150),
-                ),
-                child: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.refresh, color: Colors.white, size: 23),
-                      SizedBox(width: 4),
-                      Text(
-                        'RESET',
-                        style: TextStyle(
-                          color: Colors.white,
+                              : const Color.fromARGB(255, 255, 0, 64),
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),

@@ -6,15 +6,11 @@ import '../app_theme.dart';
 import 'driving_modes_ui.dart';
 
 class SettingsButton extends StatefulWidget {
-  final DrivingMode currentMode;
-  final ValueChanged<DrivingMode> onModeChanged;
   final Function(bool)? onUseCupertinoChanged;
   final bool currentUseCupertino;
 
   const SettingsButton({
     super.key,
-    required this.currentMode,
-    required this.onModeChanged,
     this.onUseCupertinoChanged,
     this.currentUseCupertino = false,
   });
@@ -32,6 +28,18 @@ class _SettingsButtonState extends State<SettingsButton> {
         return Positioned(
           top: 50,
           left: 16,
+          child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: BackdropFilter(
@@ -61,10 +69,6 @@ class _SettingsButtonState extends State<SettingsButton> {
                           maintainState: true,
                           pageBuilder: (context, animation, secondaryAnimation) =>
                               SettingsScreen(
-                            onTrackModeChanged: (v) => widget.onModeChanged(
-                              v ? DrivingMode.track : DrivingMode.tour,
-                            ),
-                            currentTrackMode: widget.currentMode == DrivingMode.track,
                             onUseCupertinoChanged: widget.onUseCupertinoChanged,
                             currentUseCupertino: widget.currentUseCupertino,
                           ),
@@ -104,7 +108,10 @@ class _SettingsButtonState extends State<SettingsButton> {
               ),
             ),
           ),
-        );
+          ),
+        ),
+      );
+        
       },
     );
   }

@@ -3,11 +3,6 @@ import 'dart:ui';
 import 'package:kart_v0/app_theme.dart';
 import 'package:kart_v0/services/settings_service.dart';
 
-/// Defines the available driving behaviors.
-/// Using an enum here is a best practice because it provides type safety
-/// and makes it impossible to pass an invalid mode string elsewhere in the app.
-enum DrivingMode { tour, sport, track }
-
 /// A glassmorphic segmented control for switching [DrivingMode].
 /// This widget is designed to be placed at the top level of the dashboard.
 class DrivingModeSwitcher extends StatelessWidget {
@@ -29,9 +24,21 @@ class DrivingModeSwitcher extends StatelessWidget {
     return ValueListenableBuilder<AppTheme>(
       valueListenable: SettingsService.themeNotifier,
       builder: (context, theme, child) {
-        return ClipRRect(
+        return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
           // ClipRRect is required here to ensure the BackdropFilter blur 
           // doesn't "leak" outside the rounded corners of the container.
+          
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -62,7 +69,9 @@ class DrivingModeSwitcher extends StatelessWidget {
               ),
             ),
           ),
+        ),
         );
+
       },
     );
   }

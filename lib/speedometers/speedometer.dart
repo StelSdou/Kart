@@ -185,6 +185,16 @@ class _SpeedometerState extends State<Speedometer> {
                 return Container(
                   width: size,
                   height: size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   // decoration: BoxDecoration(
                   //   shape: BoxShape.circle,
                   //   boxShadow: [
@@ -477,7 +487,7 @@ class _SpeedometerState extends State<Speedometer> {
                               style: TextStyle(
                                 fontSize: size * 0.056,
                                 fontWeight: FontWeight.w600,
-                                color: const Color.fromARGB(255, 255, 0, 51),
+                                color: theme.accent,
                               ),
                             ),
                           ),
